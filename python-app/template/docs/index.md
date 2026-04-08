@@ -1,18 +1,18 @@
-# Document for ${{values.app_env}}
+# Document for ${{values.app_name}}
 
 ## Overview
 This project is a Python application designed to [briefly describe the purpose of the application]. It utilizes Kubernetes for deployment and ArgoCD for continuous delivery.
 
 ## Project Structure
 ```
-/home/mohan/idp/${{values.app_env}}
+/home/mohan/idp/${{values.app_name}}
 ├── Dockerfile
 ├── notes
 ├── requirements.txt
 ├── charts/
 │   ├── argocd/
 │   │   └── values-argo.yaml
-│   └── ${{values.app_env}}/
+│   └── ${{values.app_name}}/
 │       ├── Chart.yaml
 │       ├── values.yaml
 │       └── templates/

@@ -1,6 +1,6 @@
-site_name: '${{values.app_env}}'
-site_description: 'Main documentation ${{values.app_env}}'
-repo_url: https://github.com/MohanDevarajan/${{values.app_env}}
+site_name: '${{values.app_name}}'
+site_description: 'Main documentation ${{values.app_name}}'
+repo_url: https://github.com/MohanDevarajan/${{values.app_name}}
 edit_uri: edit/main/docs
 
 plugins:

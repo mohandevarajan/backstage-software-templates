@@ -1,0 +1,72 @@
+name: ${{values.app_name}}-cicd
+
+on:
+  push:
+    paths:
+      - src/**
+    branches:
+      - master
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:  
+      - 
+        name: Shorten commit id
+        shell: bash
+        run: |
+          echo "COMMIT_ID=${GITHUB_SHA::6}" >> "$GITHUB_ENV"
+      -
+        name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: {{ '${{ vars.DOCKERHUB_USERNAME }}' }}
+          password: {{ '${{ secrets.DOCKERHUB_TOKEN }}' }}
+      -
+        name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: mohandevarajan/${{values.app_name}}:${{ '${{ env.COMMIT_ID }}' }}
+    outputs:
+      commit_id: ${{ '${{ env.COMMIT_ID }}' }}
+
+
+  cd:
+    needs: ci
+    runs-on: selfhosted-runners
+    steps:  
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Modify values file with new image tag
+        shell: bash
+        run: |
+          echo "Updating image tag to ${{ needs.ci.outputs.commit_id }}"
+          curl -sLo yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          chmod +x yq
+          sudo mv yq /usr/local/bin/yq
+          yq -i '.image.tag = "${{ needs.ci.outputs.commit_id }}"' charts/${{values.app_name}}/values-${{values.app_env}}.yaml
+
+      - name: Commit and push changes to repo
+        uses: Endbug/add-and-commit@v9
+        with:
+          message: "ci: update image tag to ${{ needs.ci.outputs.commit_id }}"
+
+      - name: Install ArgoCD CLI
+        shell: bash
+        run: |
+          curl -ksSL -o argocd https://argocd-server.argocd/download/argocd-linux-amd64
+          chmod +x argocd
+          sudo mv ./argocd /usr/local/bin/argocd
+
+      - name: argocd application sync
+        shell: bash
+        run: |
+          argocd login argocd-server.argocd \
+          --insecure \
+          --grpc-web \
+          --username ${{ vars.ARGOCD_USER }} \
+          --password ${{ secrets.ARGOCD_PASSWORD }}
+          argocd app sync ${{values.app_name}} 

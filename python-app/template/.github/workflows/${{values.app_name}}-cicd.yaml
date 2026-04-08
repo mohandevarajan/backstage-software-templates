@@ -6,6 +6,7 @@ on:
       - src/**
     branches:
       - master
+      - main
 
 jobs:
   ci:
@@ -34,7 +35,7 @@ jobs:
 
   cd:
     needs: ci
-    runs-on: selfhosted-runners
+    runs-on: selfhosted-org-runners
     steps:  
 
       - name: Checkout repository
